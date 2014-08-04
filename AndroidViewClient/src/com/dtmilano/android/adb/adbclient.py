@@ -285,11 +285,18 @@ class AdbClient:
     def getRestrictedScreen(self):
         ''' Gets C{mRestrictedScreen} values from dumpsys. This is a method to obtain display dimensions '''
 
+        outlines = self.shell('dumpsys window').splitlines()
         rsRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
-        for line in self.shell('dumpsys window').splitlines():
+        for line in outlines:
             m = rsRE.match(line)
             if m:
                 return m.groups()
+        # in order to competiable with android-2.3.5
+        dsRE = re.compile('\s*DisplayWidth=(?P<x>\d+) DisplayHeight=(?P<y>\d+)')
+        for line in outlines:
+            m = dsRE.match(line)
+            if m:
+                return ('0', '0') + m.groups()
         raise RuntimeError("Couldn't find mRestrictedScreen in dumpsys")
 
     def __getProp(self, key, strip=True):
